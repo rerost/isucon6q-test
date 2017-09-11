@@ -11,10 +11,13 @@ require 'sinatra/base'
 require 'tilt/erubis'
 
 require 'rack-lineprof'
+require 'rack-mini-profiler'
+require 'flamegraph'
 
 module Isuda
   class Web < ::Sinatra::Base
     use Rack::Lineprof
+    use Rack::MiniProfiler
     enable :protection
     enable :sessions
 
