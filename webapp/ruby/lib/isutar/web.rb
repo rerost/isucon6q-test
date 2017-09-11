@@ -7,8 +7,16 @@ require 'mysql2-cs-bind'
 require 'rack/utils'
 require 'sinatra/base'
 
+require 'rack-lineprof'
+require 'rack-mini-profiler'
+require 'flamegraph'
+
 module Isutar
   class Web < ::Sinatra::Base
+    require 'rack-lineprof'
+    use Rack::Lineprof
+    use Rack::MiniProfiler
+
     enable :protection
 
     set :db_user, ENV['ISUTAR_DB_USER'] || 'root'
