@@ -11,4 +11,6 @@ gem 'unicorn'
 group :development do
   gem 'foreman'
   gem 'sinatra-contrib', require: nil
+  gem 'rack-mini-profiler'
+  gem 'rack-lineprof'
 end
