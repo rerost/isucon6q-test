@@ -8,6 +8,7 @@ require 'mysql2'
 require 'mysql2-cs-bind'
 require 'rack/utils'
 require 'sinatra/base'
+require 'sinatra'
 require 'tilt/erubis'
 
 require 'rack-lineprof'
@@ -18,6 +19,7 @@ module Isuda
   class Web < ::Sinatra::Base
     use Rack::Lineprof
     use Rack::MiniProfiler
+
     enable :protection
     enable :sessions
 
@@ -96,7 +98,7 @@ module Isuda
       end
 
       def htmlify(content)
-        keywords = db.xquery(%| select * from entry order by character_length(keyword) desc |)
+        keywords = db.xquery(%| select keyword from entry order by character_length(keyword) desc |)
         pattern = keywords.map {|k| Regexp.escape(k[:keyword]) }.join('|')
         kw2hash = {}
         hashed_content = content.gsub(/(#{pattern})/) {|m|

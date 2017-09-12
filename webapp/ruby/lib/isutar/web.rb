@@ -17,6 +17,8 @@ module Isutar
     use Rack::Lineprof
     use Rack::MiniProfiler
 
+    enable :logging
+
     enable :protection
 
     set :db_user, ENV['ISUTAR_DB_USER'] || 'root'
