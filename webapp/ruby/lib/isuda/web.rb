@@ -13,6 +13,7 @@ require 'tilt/erubis'
 require 'rack-lineprof'
 require 'rack-mini-profiler'
 require 'flamegraph'
+require 'redis'
 
 module Isuda
   class Web < ::Sinatra::Base
@@ -72,6 +73,13 @@ module Isuda
           end
       end
 
+      def redis
+        Thread.current[:redis] ||=
+          begin
+            Redis.new(host: "localhost", port: 6379)
+          end
+      end
+
       def register(name, pw)
         chars = [*'A'..'~']
         salt = 1.upto(20).map { chars.sample }.join('')
@@ -96,7 +104,7 @@ module Isuda
       end
 
       def htmlify(content)
-        keywords = db.xquery(%| select keyword from entry order by character_length(keyword) desc |)
+        keywords = db.xquery(%| select keyword from entry order by keyword_length desc |)
         pattern = keywords.map {|k| Regexp.escape(k[:keyword]) }.join('|')
         kw2hash = {}
         hashed_content = content.gsub(/(#{pattern})/) {|m|
@@ -223,11 +231,13 @@ module Isuda
 
       bound = [@user_id, keyword, description] * 2
       db.xquery(%|
-        INSERT INTO entry (author_id, keyword, description, created_at, updated_at)
-        VALUES (?, ?, ?, NOW(), NOW())
+        INSERT INTO entry (author_id, keyword, description, created_at, updated_at, keyword_length)
+        VALUES (?, ?, ?, NOW(), NOW(), CHARACTER_LENGTH(keyword))
         ON DUPLICATE KEY UPDATE
         author_id = ?, keyword = ?, description = ?, updated_at = NOW()
       |, *bound)
+
+      redis.zadd("zset:keywords", keyword.length, keyword)
 
       redirect_found '/'
     end
@@ -254,6 +264,7 @@ module Isuda
       end
 
       db.xquery(%| DELETE FROM entry WHERE keyword = ? |, keyword)
+      redis.zrem("zset:keywords", keyword)
 
       redirect_found '/'
     end
