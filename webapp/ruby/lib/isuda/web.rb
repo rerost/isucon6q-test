@@ -40,7 +40,7 @@ module Isuda
       condition {
         user_id = session[:user_id]
         if user_id
-          user = db.xquery(%| select name from user where id = ? |, user_id).first
+          user = db.xquery(%| select name from user where id = ? limit 1|, user_id).first
           @user_id = user_id
           @user_name = user[:name]
           halt(403) unless @user_name
@@ -96,7 +96,7 @@ module Isuda
       end
 
       def htmlify(content)
-        keywords = db.xquery(%| select * from entry order by character_length(keyword) desc |)
+        keywords = db.xquery(%| select keyword from entry order by character_length(keyword) desc |)
         pattern = keywords.map {|k| Regexp.escape(k[:keyword]) }.join('|')
         kw2hash = {}
         hashed_content = content.gsub(/(#{pattern})/) {|m|
@@ -147,7 +147,7 @@ module Isuda
       page = (params[:page] || 1).to_i
 
       entries = db.xquery(%|
-        SELECT * FROM entry
+        SELECT description, keyword FROM entry
         ORDER BY updated_at DESC
         LIMIT #{per_page}
         OFFSET #{per_page * (page - 1)}

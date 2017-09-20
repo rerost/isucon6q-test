@@ -7,8 +7,10 @@ gem 'mysql2'
 gem 'mysql2-cs-bind'
 gem 'sinatra'
 gem 'unicorn'
+gem 'redis'
 
 group :development do
+  gem 'pry'
   gem 'foreman'
   gem 'sinatra-contrib', require: nil
   gem 'rack-mini-profiler'
